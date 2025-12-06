@@ -6,6 +6,7 @@ class Game
     @board = Board.new
     @player = Player.new
     @current_player = @player.player1
+    @winner = ""
   end
   
   def switchTurns
@@ -30,26 +31,74 @@ class Game
       return false
     end
     
-    valid = @board.updateBoard(row_index,col_index, @current_player)
+    valid = @board.update_board(row_index, col_index, @current_player)
     if !valid
       puts "That space is already taken. Try another"
     end
+
+    return false unless valid
     @board.display
+    switchTurns
     return true
   end
 
   def play
-    puts "It is #{current_player} turn. Enter your move (e.g. A1):"
+  until check_win || check_draw
+    puts "It is #{@current_player} turn. Enter your move (e.g. A1):"
+    @board.display
+    move = gets.chomp
+    
+    # Only continue if valid move
+    next unless round(move)
+
+    # After round(move), the board updated. Now check win/draw.
+    if check_win
+      puts "#{@winner} is the winner!"
+      return
+    elsif check_draw
+      puts "Draw!"
+      return
+    end
+  end
   end
 
-  def draw
-    
+  def check_draw
+    @board.get_board.flatten.none? { |space| space == " " }
   end
   
-  def win
+  def check_win
+    current_board = @board.get_board
     
-  end
+    for row in 0..2 do
+      #cols loop
+      if(current_board[row][0] == current_board[row][1] && current_board[row][0] == current_board[row][2] && current_board[row][0] != " ")
+        @winner = current_board[row][0]
+        return true            
+      end
+    end
+    
+    for col in 0..2 do
+      #rows loop    
+      if(current_board[0][col] == current_board[1][col] && current_board[0][col] == current_board[2][col] && current_board[0][col] != " ")
+        @winner = current_board[0][col]
+        return true            
+      end
+    end
+      
+      #diag check
+      if(current_board[0][0] == current_board[1][1] && current_board[0][0] == current_board[2][2] && current_board[0][0] != " ")
+        @winner = current_board[0][0]
+        return true
+      end
+      
+      if(current_board[2][0] == current_board[1][1] && current_board[2][0] == current_board[0][2] && current_board[2][0] != " ")
+        @winner = current_board[2][0]
+        return true      
+      end
 
+    return false
+  end
 end
 
-
+game = Game.new
+game.play
